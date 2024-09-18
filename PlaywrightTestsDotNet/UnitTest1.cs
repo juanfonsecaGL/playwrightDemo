@@ -8,24 +8,43 @@ namespace PlaywrightTestsDotNet;
 [TestFixture]
 public class ExampleTest : PageTest
 {
+    IBrowser _browser;
+
+    [SetUp]
+    public void SetUp()
+    {
+        _browser = Playwright.Chromium.LaunchAsync(new() {
+            Headless = false
+        }).GetAwaiter().GetResult();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _browser.CloseAsync();
+    }
+
     [Test]
     public async Task HasTitle()
     {
-        await Page.GotoAsync("https://playwright.dev");
+        var page = await _browser.NewPageAsync();
+        await page.GotoAsync("https://playwright.dev");
 
         // Expect a title "to contain" a substring.
-        await Expect(Page).ToHaveTitleAsync(new Regex("Playwright"));
+        await Expect(page).ToHaveTitleAsync(new Regex("Playwright"));
     }
 
     [Test]
     public async Task GetStartedLink()
     {
-        await Page.GotoAsync("https://playwright.dev");
+        var page = await _browser.NewPageAsync();
+        await page.GotoAsync("https://playwright.dev");
 
         // Click the get started link.
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Get started" }).ClickAsync();
+        await page.GetByRole(AriaRole.Link, new() { Name = "Get started" }).ClickAsync();
 
         // Expects page to have a heading with the name of Installation.
-        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Installation" })).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Installation" })).ToBeVisibleAsync();
+        await Expect(page.Locator("//h2[@id='introduction']")).ToBeVisibleAsync();
     }
 }
